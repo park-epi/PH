@@ -6,9 +6,13 @@
     <title>MPH-TI | 나의 보건학적 성향 찾기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* [로고 크기 조절] 아래 수치를 변경하여 로고의 높이를 조절할 수 있습니다. */
+            --logo-height: 3rem; 
+        }
+
         body {
             font-family: 'Noto Sans KR', sans-serif;
             background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
@@ -23,9 +27,15 @@
         .progress-bar { transition: width 0.4s ease-in-out; }
         .option-btn { transition: all 0.2s ease; }
         .option-btn:hover { transform: translateY(-2px); background-color: #f1f5f9; }
+        
+        /* 대학교 로고 스타일 */
+        .university-logo {
+            height: var(--logo-height);
+            object-contain: contain;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        .kakao-btn { background-color: #FEE500; color: #191919; }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -34,10 +44,12 @@
         
         <!-- Start Screen -->
         <div id="start-screen" class="p-8 flex flex-col items-center justify-center flex-grow text-center">
-            <div class="w-20 h-20 bg-sky-100 rounded-full flex items-center justify-center mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+            <div class="mb-8">
+                <!-- 가톨릭대학교 로고 이미지 -->
+                <img src="https://gscuk1.catholic.ac.kr/gscuk/images/main/logo.jpg" 
+                     alt="가톨릭대학교 로고" 
+                     class="university-logo"
+                     onerror="this.parentElement.innerHTML='<div class=\'w-20 h-20 bg-sky-100 rounded-full flex items-center justify-center\'><span class=\'text-sky-600 font-bold\'>CUK</span></div>'">
             </div>
             <h1 class="text-3xl font-bold text-slate-800 mb-2 tracking-tight">MPH-TI</h1>
             <p class="text-sky-600 font-semibold mb-6 uppercase text-sm tracking-wider">나의 보건학적 성향 진단</p>
@@ -90,9 +102,12 @@
             </div>
             
             <div class="w-full space-y-2">
-                <button onclick="downloadImage()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md flex items-center justify-center transition-all text-sm">이미지로 저장</button>
+                <!-- 이미지 저장 버튼을 강조된 디자인으로 변경 -->
+                <button onclick="downloadImage()" class="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center transition-all">
+                    진단 결과 이미지로 저장하기
+                </button>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="copyToClipboard()" class="py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition-all">요약 복사</button>
+                    <button onclick="copyToClipboard()" class="py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition-all">요약 텍스트 복사</button>
                     <button onclick="location.reload()" class="py-3 bg-white border border-slate-200 text-slate-400 font-bold rounded-xl text-xs transition-all">다시 하기</button>
                 </div>
                 <div id="save-status" class="text-[10px] text-center text-slate-400 mt-4">데이터 저장 중...</div>
@@ -104,13 +119,9 @@
     </div>
 
     <script>
-        // ★★★ 1단계에서 복사한 구글 앱스 스크립트 URL을 여기에 넣으세요 ★★★
+        // ★★★ 구글 앱스 스크립트 URL을 여기에 입력하세요 ★★★
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzhaQQ-xgiWh-j5PMwe88AnydLUndlXtkdu8gRQD_S_YHZ6JDMEzYXE5OzuoPTxX77Nw/exec";
         
-        // Kakao Init
-        const KAKAO_KEY = '719277d3b0638573216091219808381d'; 
-        try { if (window.Kakao && !Kakao.isInitialized()) Kakao.init(KAKAO_KEY); } catch(e) {}
-
         let nickname = "";
         let currentStep = 0;
         let scores = { EPI: 0, STAT: 0, POL: 0, FIELD: 0 };
@@ -202,7 +213,6 @@
             saveToGoogleSheet();
         }
 
-        // 구글 시트 저장 로직
         function saveToGoogleSheet() {
             const statusElem = document.getElementById('save-status');
             const data = {
@@ -213,7 +223,7 @@
 
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // CORS 제한 우회
+                mode: 'no-cors',
                 cache: 'no-cache',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -225,20 +235,6 @@
                 console.error(e);
             });
         }
-
-        window.shareKakao = () => {
-            if (!Kakao.isInitialized()) return showToast("카카오 초기화 중...");
-            Kakao.Share.sendDefault({
-                objectType: 'feed',
-                content: {
-                    title: `[MPH-TI] ${nickname}님의 보건학 성향`,
-                    description: `나의 유형: ${finalResultData.title}\n2026 보건학과 신입생 진단 결과입니다.`,
-                    imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=500',
-                    link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
-                },
-                buttons: [{ title: '나도 테스트하기', link: { mobileWebUrl: window.location.href, webUrl: window.location.href } }],
-            });
-        };
 
         window.downloadImage = () => {
             html2canvas(document.getElementById('capture-area')).then(canvas => {
